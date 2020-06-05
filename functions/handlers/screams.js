@@ -83,14 +83,17 @@ exports.commentOnScream = (req, res) => {
 		userHandle: req.user.handle,
 		userImage: req.user.imageUrl,
 	};
-	db.doc(`/screams/${req.params.screams}`)
+	db.doc(`/screams/${req.params.screamId}`)
 		.get()
 		.then((doc) => {
 			if (!doc.exists) {
 				return res.status(404).json({ error: "scream not found" });
 			}
-			return db.collection("comments").add(newComment);
-		})
+			return doc.ref.update({ commentCount: doc.data().commentCount + 1 });
+        })
+        .then(() => {
+            return db.collection('comments').add(newComment);
+        })
 		.then(() => {
 			res.json(newComment);
 		})
@@ -106,7 +109,7 @@ exports.likeScream = (req, res) => {
 		.where("screamId", "==", req.params.screamId)
 		.limit(1);
 	const screamDocument = db.doc(`/screams/${req.params.screamId}`);
-	let screamData = {};
+	let screamData;
 
 	screamDocument
 		.get()
@@ -150,7 +153,7 @@ exports.unlikeScream = (req, res) => {
 		.where("screamId", "==", req.params.screamId)
 		.limit(1);
 	const screamDocument = db.doc(`/screams/${req.params.screamId}`);
-	let screamData = {};
+	let screamData;
 
 	screamDocument
 		.get()
@@ -168,7 +171,7 @@ exports.unlikeScream = (req, res) => {
 				return res.status(400).json({ error: "scream not liked" });
 			} else {
 				return db
-					.doc(`/likes/${data.docs[0].data().id}`)
+					.doc(`/likes/${data.docs[0].id}`)
 					.delete()
 					.then(() => {
 						screamData.likeCount--;
@@ -181,5 +184,27 @@ exports.unlikeScream = (req, res) => {
 		})
 		.catch((err) => {
 			res.status(500).json({ error: err.code });
+		});
+};
+
+exports.deleteScream = (req, res) => {
+	const document = db.doc(`'/scream/${req.params.screamId}`);
+	document
+		.get()
+		.then((doc) => {
+			if (!doc.exists) {
+				return res.status(404).json({ error: "scream not found" });
+			}
+			if (doc.data().userHanlde !== req.user.handle) {
+				return res.status(403).json({ error: "unauthorized" });
+			} else {
+				return document.delete();
+			}
+		})
+		.then(() => {
+			res.json({ message: "scream deleted successfully" });
+		})
+		.catch((err) => {
+			return res.status(500).json({ error: err.code });
 		});
 };
