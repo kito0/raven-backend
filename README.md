@@ -1,11 +1,10 @@
 # Raven
 
-A social media web application in development.
+Backend for Raven, a social media application.
 
 
 # Software Used
 
-Node.js
-React.js
-Redux
-Firebase
+Firebase\n
+Express.js\n
+Node.js\n
