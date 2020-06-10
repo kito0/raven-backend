@@ -12,6 +12,7 @@ exports.getAllScreams = (req, res) => {
 					body: doc.data().body,
 					userHandle: doc.data().userHandle,
 					createdAt: doc.data().createdAt,
+					userImage: doc.data().userImage,
 				});
 			});
 			return res.json(screams);
@@ -23,7 +24,7 @@ exports.getAllScreams = (req, res) => {
 
 exports.postOneScream = (req, res) => {
 	if (req.body.body.trim() === "") {
-		return res.status(400).json({ body: "must not be empty" });
+		return res.status(400).json({ comment: "must not be empty" });
 	}
 	const newScream = {
 		body: req.body.body,
@@ -90,10 +91,10 @@ exports.commentOnScream = (req, res) => {
 				return res.status(404).json({ error: "scream not found" });
 			}
 			return doc.ref.update({ commentCount: doc.data().commentCount + 1 });
-        })
-        .then(() => {
-            return db.collection('comments').add(newComment);
-        })
+		})
+		.then(() => {
+			return db.collection("comments").add(newComment);
+		})
 		.then(() => {
 			res.json(newComment);
 		})

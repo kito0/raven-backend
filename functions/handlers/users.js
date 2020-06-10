@@ -56,7 +56,9 @@ exports.signup = (req, res) => {
 			if (err.code === "auth/email-already-in-use") {
 				return res.status(400).json({ email: "email is already in use" });
 			} else {
-				return res.status(500).json({ error: err.code });
+				return res
+					.status(500)
+					.json({ general: "something went wrong, please try again" });
 			}
 		});
 };
@@ -197,12 +199,14 @@ exports.getUserDetails = (req, res) => {
 		.get()
 		.then((doc) => {
 			if (doc.exists) {
-				userData.user = doc.data;
+				userData.user = doc.data();
 				return db
 					.collection("screams")
 					.where("userhandle", "==", req.params.handle)
 					.orderBy("createdAt", "desc")
 					.get();
+			} else {
+				return res.status(404).json({ error: "user not found" });
 			}
 		})
 		.then((data) => {
@@ -226,5 +230,17 @@ exports.getUserDetails = (req, res) => {
 };
 
 exports.markNotificationsRead = (req, res) => {
-    
+	let batch = db.batch();
+	req.body.forEach((notificationId) => {
+		const notification = db.doc(`/notifications/${notificationId}`);
+		batch.update(notification, { read: true });
+	});
+	batch
+		.commit()
+		.then(() => {
+			return res.json({ message: "notitications marked read" });
+		})
+		.catch((err) => {
+			return res.status(500).json({ error: err.code });
+		});
 };
