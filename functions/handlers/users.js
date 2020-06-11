@@ -1,5 +1,6 @@
 const { admin, db } = require("../util/admin");
 const config = require("../util/config");
+const { uuid } = require("uuidv4");
 const {
 	validateSignupData,
 	validateLoginData,
@@ -112,6 +113,7 @@ exports.uploadImage = (req, res) => {
 
 	let imageFileName;
 	let imageToBeUploaded = {};
+	let generatedToken = uuid();
 
 	busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
 		const imageExtension = filename.split(".")[filename.split(".").length - 1];
@@ -131,11 +133,12 @@ exports.uploadImage = (req, res) => {
 				metadata: {
 					metadata: {
 						contentType: imageToBeUploaded.mimetype,
+						firebaseStorageDownloadTokens: generatedToken,
 					},
 				},
 			})
 			.then(() => {
-				const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`;
+				const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media&token=${generatedToken}`;
 				return db.doc(`/users/${req.user.handle}`).update({ imageUrl });
 			})
 			.then(() => {
