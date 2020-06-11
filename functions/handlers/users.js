@@ -117,7 +117,7 @@ exports.uploadImage = (req, res) => {
 
 	busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
 		const imageExtension = filename.split(".")[filename.split(".").length - 1];
-		const imageFileName = `${Math.round(
+		imageFileName = `${Math.round(
 			Math.random() * 1000000000000
 		).toString()}.${imageExtension}`;
 		const filepath = path.join(os.tmpdir(), imageFileName);
